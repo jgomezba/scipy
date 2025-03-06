@@ -2370,7 +2370,13 @@ class rv_continuous(rv_generic):
         if np.any(cond):
             goodargs = argsreduce(cond, *((q,)+args+(scale, loc)))
             scale, loc, goodargs = goodargs[-2], goodargs[-1], goodargs[:-2]
-            place(output, cond, self._isf(*goodargs) * scale + loc)
+            k = self._isf(*goodargs) * scale + loc
+            if k >= _b * scale + loc:
+                while k > lower_bound and stats.binom.sf((k-loc)/scale, *goodargs) > q:
+                     k -= scale
+                    
+            place(output, cond, k)
+            
         if output.ndim == 0:
             return output[()]
         return output
